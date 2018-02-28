@@ -960,6 +960,15 @@ class CrossDomainGate {}
         z-index: 10;
       }
 
+      #zenzaVideoPlayerDialog.is-guest .forMember {
+        display: none;
+      }
+      #zenzaVideoPlayerDialog .forGuest {
+        display: none;
+      }
+      #zenzaVideoPlayerDialog.is-guest .forGuest {
+        display: inherit;
+      }
     `;
 
     var WindowMessageEmitter = (function() {

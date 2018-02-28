@@ -100,6 +100,9 @@ var AsyncEmitter = function() {};
       color: #fff;
       margin-bottom: 32px;
     }
+    .zenzaSettingPanel .filterEditContainer.forGuest {
+      padding: 8px;
+    }
     .zenzaSettingPanel .filterEditContainer p {
       color: #fff;
       font-size: 120%;
@@ -394,7 +397,11 @@ var AsyncEmitter = function() {};
         </div>
 
         <p class="caption">NG設定</p>
-        <div class="filterEditContainer">
+        <div class="filterEditContainer forGuest">
+          設定の変更はログイン中のみ可能です。<br>
+          非ログインでも、設定済みの内容は反映されます。
+        </div>
+        <div class="filterEditContainer forMember">
           <span class="info">
             １行ごとに入力。プレミアム会員に上限はありませんが、増やしすぎると重くなります。
           </span>
@@ -411,44 +418,6 @@ var AsyncEmitter = function() {};
             class="filterEdit userIdFilterEdit"
             data-command="setUserIdFilterList"></textarea>
         </div>
-
-        <!--
-        <p class="caption">一発ネタ系(飽きたら消します)</p>
-        <div class="speakLarkControl control toggle">
-          <label>
-            <input type="checkbox" class="checkbox" data-setting-name="speakLark">
-            コメントの読み上げ(対応ブラウザのみ)
-          </label>
-        </div>
-        <div class="speakLarkVolumeControl control toggle">
-          <label>
-            <select class="speakLarkVolume" data-setting-name="speakLarkVolume">
-              <option value="1.0" selected>100%</option>
-              <option value="0.9" selected>90%</option>
-              <option value="0.8" selected>80%</option>
-              <option value="0.7" selected>70%</option>
-              <option value="0.6" selected>60%</option>
-              <option value="0.5" selected>50%</option>
-              <option value="0.4" selected>40%</option>
-              <option value="0.3" selected>30%</option>
-              <option value="0.2" selected>20%</option>
-              <option value="0.1" selected>10%</option>
-            </select>
-            読み上げの音量
-          </label>
-        </div>
-        -->
-
-        <!--
-        <p class="caption">開発中・テスト中の項目</p>
-        <div class="debugControl control toggle">
-          <label>
-            <input type="checkbox" class="checkbox" data-setting-name="debug">
-            デバッグ
-          </label>
-        </div>
-        -->
-
 
       </div>
     </div>

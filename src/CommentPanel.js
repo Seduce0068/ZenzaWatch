@@ -9,6 +9,7 @@ var FrameLayer = function() {};
 var PopupMessage = {};
 var CONSTANT = {};
 class BaseViewComponent {}
+const util = {};
 
 //===BEGIN===
 
@@ -179,6 +180,11 @@ class BaseViewComponent {}
     overflow: auto;
   }
 
+  .is-guest .forMember {
+    display: none !important;
+  }
+
+
 </style>
 <style id="listItemStyle">%CSS%</style>
 <body>
@@ -198,8 +204,8 @@ class BaseViewComponent {}
       <span class="menuButton itemDetailRequest"
         data-command="itemDetailRequest" title="詳細">？</span>
       <span class="menuButton clipBoard"        data-command="clipBoard" title="クリップボードにコピー">copy</span>
-      <span class="menuButton addUserIdFilter"  data-command="addUserIdFilter" title="NGユーザー">NGuser</span>
-      <span class="menuButton addWordFilter"    data-command="addWordFilter" title="NGワード">NGword</span>
+      <span class="menuButton addUserIdFilter forMember"  data-command="addUserIdFilter" title="NGユーザー">NGuser</span>
+      <span class="menuButton addWordFilter forMember"    data-command="addWordFilter" title="NGワード">NGword</span>
 
     </div>
 
@@ -264,7 +270,8 @@ class BaseViewComponent {}
         .on('dblclick',  this._onDblClick .bind(this))
 //        .on('mousemove', _.debounce(this._onMouseMove.bind(this), 100))
         .on('keydown', function(e) { ZenzaWatch.emitter.emit('keydown', e); })
-        .on('keyup', function(e)   { ZenzaWatch.emitter.emit('keyup', e); });
+        .on('keyup', function(e)   { ZenzaWatch.emitter.emit('keyup', e); })
+        .toggleClass('is-guest', !util.isLogin());
 
       this._$menu.on('click', this._onMenuClick.bind(this));
       this._$itemDetail.on('click', this._onItemDetailClick.bind(this));
@@ -1079,6 +1086,8 @@ data-title="%no%: %date% ID:%userId%
       font-weight: bolder;
       color: #ff9;
     }
+
+
   `).trim();
 
   CommentPanelView.__tpl__ = (`
@@ -1113,7 +1122,7 @@ data-title="%no%: %date% ID:%userId%
             </div>
           </div>
         </div>
-      <div class="timeMachineContainer"></div>
+      <div class="timeMachineContainer forMember"></div>
       </div>
       <div class="commentPanel-frame"></div>
     </div>
@@ -1682,7 +1691,7 @@ data-title="%no%: %date% ID:%userId%
     </div>
   `).trim();
 
-  TimeMachineView.__tpl__ = (`<div class="TimeMachineView"></div>`).trim();
+  TimeMachineView.__tpl__ = (`<div class="TimeMachineView forMember"></div>`).trim();
 
 
 //===END===

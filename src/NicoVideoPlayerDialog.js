@@ -1015,7 +1015,8 @@ var CONSTANT = {};
           if (config.getValue('enableDblclickClose')) {
             this.emit('command', 'close');
           }
-        });
+        })
+        .toggleClass('is-guest', !util.isLogin());
 
       this._hoverMenu = new VideoHoverMenu({
         playerContainer: container,
@@ -1945,6 +1946,7 @@ var CONSTANT = {};
     },
     _onDeflistAdd: function(watchId) {
       if (this._playerState.isUpdatingDeflist) { return; } //busy
+      if (!util.isLogin()) { return; }
 
       const unlock = () => {
         this._playerState.isUpdatingDeflist = false;
@@ -1975,6 +1977,7 @@ var CONSTANT = {};
     },
     _onDeflistRemove: function(watchId) {
       if (this._playerState.isUpdatingDeflist) { return; } //busy
+      if (!util.isLogin()) { return; }
       const unlock = () => {
         this._playerState.isUpdatingDeflist = false;
       };
@@ -2000,6 +2003,7 @@ var CONSTANT = {};
     },
     _onMylistAdd: function(groupId, mylistName) {
       if (this._playerState.isUpdatingMylist) { return; } //busy
+      if (!util.isLogin()) { return; }
 
       const unlock = () => {
         this._playerState.isUpdatingMylist = false;
@@ -2029,6 +2033,7 @@ var CONSTANT = {};
     },
     _onMylistRemove: function(groupId, mylistName) {
       if (this._playerState.isUpdatingMylist) { return; } //busy
+      if (!util.isLogin()) { return; }
 
       const unlock = () => {
         this._playerState.isUpdatingMylist = false;
@@ -2655,6 +2660,7 @@ var CONSTANT = {};
           this._playerState.isCommentPosting) {
         return Promise.reject();
       }
+      if (!util.isLogin()) { return Promise.reject(); }
 
       if (this._threadInfo.force184 !== '1') {
         cmd = '184 ' + cmd;
@@ -3400,18 +3406,18 @@ var CONSTANT = {};
             <div class="tooltip">ツイート</div>
             <div class="menuButtonInner">t</div>
           </div>
-          <div class="command menuButton mylistButton mylistAddMenu" data-command="mylistMenu">
+          <div class="command menuButton mylistButton mylistAddMenu forMember" data-command="mylistMenu">
             <div class="tooltip">マイリスト登録</div>
             <div class="menuButtonInner">My</div>
           </div>
 
-          <div class="mylistSelectMenu selectMenu zenzaPopupMenu">
+          <div class="mylistSelectMenu selectMenu zenzaPopupMenu forMember">
             <div class="triangle"></div>
             <div class="mylistSelectMenuInner">
             </div>
           </div>
 
-          <div class="command menuButton mylistButton deflistAdd" data-command="deflistAdd">
+          <div class="command menuButton mylistButton deflistAdd forMember" data-command="deflistAdd">
             <div class="tooltip">とりあえずマイリスト(T)</div>
             <div class="menuButtonInner">&#x271A;</div>
           </div>
@@ -3521,6 +3527,7 @@ var CONSTANT = {};
       ZenzaWatch.emitter.on('hideHover', this._hideMenu.bind(this));
     },
     _initializeMylistSelectMenu: function() {
+      if (!util.isLogin()) { return; }
       this._mylistApiLoader = new ZenzaWatch.api.MylistApiLoader();
       this._mylistApiLoader.getMylistList().then(mylistList => {
         this._mylistList = mylistList;
@@ -3528,6 +3535,7 @@ var CONSTANT = {};
       });
     },
     _initializeMylistSelectMenuDom: function(mylistList) {
+      if (!util.isLogin()) { return; }
       mylistList = mylistList || this._mylistList;
       let menu = this._container.querySelector('.mylistSelectMenu');
       menu.addEventListener('wheel', e => { e.stopPropagation(); }, {passive: true});
