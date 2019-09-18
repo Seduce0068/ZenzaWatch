@@ -13,45 +13,75 @@
 // @match          *://uad.nicovideo.jp/*
 // @match          *://*.nicovideo.jp/smile*
 // @match          *://site.nicovideo.jp/*
+// @match          *://anime.nicovideo.jp/*
 // @exclude        *://ads.nicovideo.jp/*
 // @exclude        *://www.upload.nicovideo.jp/*
 // @exclude        *://www.nicovideo.jp/watch/*?edit=*
-// @exclude        *://www.nicovideo.jp/mylist/*
 // @exclude        *://ch.nicovideo.jp/tool/*
 // @exclude        *://flapi.nicovideo.jp/*
 // @exclude        *://dic.nicovideo.jp/p/*
 // @grant          none
 // @author         segabito macmoto
-// @version        0.0.2
+// @version        0.0.15
 // @noframes
+// @require        https://cdn.jsdelivr.net/npm/hls.js@latest
 // @run-at         document-start
 // ==/UserScript==
+/* eslint-disable */
 
 
 const MODULES = `
-//import {html, render} from 'https://cdn.jsdelivr.net/npm/lit-html@0.9.0/lit-html.js';
-//import * as _ from 'https://cdn.rawgit.com/lodash/lodash/4.17.4-es/lodash.default.min.js';
-//
-const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
+const ZenzaHLSmodules = {ErrorEvent, MediaError, HTMLDialogElement: window.HTMLDialogElement || HTMLDivElement, DOMException};
 `;
 // hls.js@latest だと再生が始まらない動画がたまにある。 0.8.9ならok
 
-(() => {
+const AntiPrototypeJs = function() {
+  if (this.promise || !window.Prototype || window.PureArray) {
+    return this.promise || Promise.resolve(window.PureArray || window.Array);
+  }
+  if (document.getElementsByClassName.toString().indexOf('B,A') >= 0) {
+    console.info('%cI don\'t like prototype.js 1.5.x', 'font-family: "Arial Black";');
+    // delete document.getElementsByClassName;
+  } else {
+    return Promise.resolve();
+  }
+  // jQuery && !jQuery.browser && jQuery.noConflict(true);
+  const f = document.createElement('iframe');
+  f.srcdoc = '<html><title>ここだけ時間が10年遅れてるスレ</title></html>';
+  f.id = 'prototype';
+  f.loading = 'eager';
+  Object.assign(f.style, { position: 'absolute', left: '-100vw', top: '-100vh' });
+  return this.promise = new Promise(res => {
+    f.onload = res;
+    document.documentElement.append(f);
+  }).then(() => {
+    window.PureArray = f.contentWindow.Array;
+    // 副作用あるかも？
+    delete window.Array.prototype.toJSON;
+    delete window.String.prototype.toJSON;
+    f.remove();
+    return Promise.resolve(window.PureArray);
+  }).catch(err => console.error(err));
+}.bind({promise: null});
+
+AntiPrototypeJs().then(() => {
   const PRODUCT = 'ZenzaWatchHLS';
   const monkey = (PRODUCT, {ErrorEvent, MediaError, HTMLDialogElement, DOMException}) => {
     const console = window.console;
     const VER = '0.0.1';
     const PopupMessage = {debug: () =>{}};
+    const Array = window.PureArray || window.Array;
     let primaryVideo;
 
-    let util = {fetch: (...args) => { return window.fetch(...args); }};
+    let util = {fetch: (...args) => window.fetch(...args)};
     console.log(`%c${PRODUCT} v:%s`, 'background: cyan;', VER);
 
     console.time('ZenzaWatch HLS');
 
+
     const DEFAULT_CONFIG = {
       // hls.js 以外のパラメータ
-      segment_duration: 5000, // dmc
+      segment_duration: 4000, // dmc!
       use_native_hls: true,   // SafariなどブラウザがHLS対応だったらそっちを使う
       show_video_label: false, //
       autoAbrEwmaDefaultEstimate: true,
@@ -128,6 +158,37 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
       return Object.assign({}, DEFAULT_CONFIG);
     });
 
+    const dimport = Object.assign(url => {
+      if (window.ZenzaWatch && window.ZenzaWatch.util && window.ZenzaWatch.util.dimport) {
+        return window.ZenzaWatch.util.dimport(url);
+      }
+      if (dimport.map[url]) {
+        return dimport.map[url];
+      }
+      const now = Date.now();
+      const callbackName = `dimport_${now}`;
+      const loader = `
+        console.log('%cdynamic import from "${url}"',
+          'font-weight: bold; background: #333; color: #ff9; display: block; padding: 4px; width: 100%;');
+        window.${callbackName}(module${now});
+        `.trim();
+      console.time(`"${url}" import time`);
+      const p = new Promise(res => {
+        const s = document.createElement('script');
+        s.type = 'module';
+        s.append(document.createTextNode(loader));
+        s.dataset.import = url;
+        window[callbackName] = module => {
+          console.timeEnd(`"${url}" import time`);
+          res(module);
+          delete window[callbackName];
+        };
+        document.documentElement.append(s);
+      });
+      dimport.map[url] = p;
+      return p;
+    }, {map: {}});
+
     class Emitter {
       on(name, callback) {
         if (!this._events) { this._events = {}; }
@@ -152,9 +213,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
         name = name.toLowerCase();
         if (!this._events.hasOwnProperty(name)) { return; }
         const e = this._events[name];
-        //const arg = Array.prototype.slice.call(arguments, 1);
         for (let i =0, len = e.length; i < len; i++) {
-          //e[i].apply(null, arg);
           e[i](...args);
         }
       }
@@ -227,11 +286,11 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
           lastArgs = args;
           if (!timer) {
             timer = setTimeout(() => {
-              func.apply(null, lastArgs);
-              lastTime = now;
+              lastTime = performance.now();
               timer = null;
+              func.apply(null, lastArgs);
               lastArgs = null;
-            }, interval - timeDiff);
+            }, Math.max(interval - timeDiff, 0));
           }
           return;
         }
@@ -417,6 +476,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
           try {
             await this.deleteRecord(store, hash, {index: 'hash', record});
             let result = await this.putRecord(store, record);
+            transaction.commit && transaction.commit();
             this.constructor.close();
             return result;
           } catch (e) {
@@ -431,9 +491,8 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
             return;
           }
           let now = Date.now();
-          let {store} = await this.getStore();
+          let {store, transaction} = await this.getStore();
           this.isBusy = true;
-          let deleted = 0;
           let timekey = `storage gc:${new Date().toLocaleString()}`;
           console.time(timekey);
           return new Promise((resolve, reject) => {
@@ -443,6 +502,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
               this.isBusy = false;
               this.constructor.close();
               console.timeEnd(timekey);
+              transaction.commit && transaction.commit();
               resolve();
             };
             req.onerror = e => {
@@ -542,16 +602,16 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
       };
     };
 
-    const createWebWorker = (func, type = '') => {
+    const createWebWorker = (func, {type, name} = {}) => {
       let src = func.toString().replace(/^function.*?{/, '').replace(/}$/, '');
 
       let blob = new Blob([src], {type: 'text/javascript'});
       let url = URL.createObjectURL(blob);
 
       if (type === 'SharedWorker') {
-        return new SharedWorker(url);
+        return new SharedWorker(url, {name});
       }
-      return new Worker(url);
+      return new Worker(url, {name});
     };
 
     const Storage = {
@@ -604,13 +664,17 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
         return await this.sendRequest('load', {hash});
       },
       gc: function() {
-        return this.sendRequest('gc', {});
+        if (Config.get('enable_db_cache') && !window.Prototype) {
+          return this.sendRequest('gc', {});
+        } else {
+          return Promise.resolve();
+        }
       },
       clear: async function() {
         return this.sendRequest('clear', {});
       }
     };
-    Storage.worker = createWebWorker(StorageWorker);
+    Storage.worker = createWebWorker(StorageWorker, {name: 'ZenzaWatchHLSWorker'});
     Storage.worker.addEventListener('message', Storage.onMessage.bind(Storage));
     Storage.setConfig({cache_expire_time: Config.get('cache_expire_time')});
     Storage.gc = debounce(Storage.gc.bind(Storage), 10 * 1000);
@@ -672,12 +736,17 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
 
             let [path, videoId, level, sn] =
                 /\/nicovideo-([a-z0-9]+)_.*\/([\d]+)\/ts\/([\d]+)\.ts/.exec(url);
+            let rel = '';
+            if (fragment.levelkey && fragment.levelkey.reluri) {
+              let m = /h=(.*?)&/.exec(fragment.levelkey.reluri);
+              rel = m ? `-${m[1]}` : '';
+            }
             if (levels && levels[fragment.level]) {
               let {width, height, bitrate, attrs} = levels[fragment.level];
               let fps = attrs['FRAME-RATE'] ? `${attrs['FRAME-RATE']}fps` : '(unknown)fps';
-              return {hash: `${videoId}-${width}x${height}-${bitrate}bps-${fps}-${sn}`, videoId};
+              return {hash: `${videoId}-${width}x${height}-${bitrate}bps-${fps}-${sn}${rel}`, videoId};
             }
-            return {hash: `${videoId}-${fragment.level}-${sn}`, videoId};
+            return {hash: `${videoId}-${fragment.level}-${sn}${rel}`, videoId};
           }
 
           constructor(config) {
@@ -685,6 +754,11 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
             this._config = config;
             this._isAborted = false;
             this._isDestroyed = false;
+//            this.xhrSetup = (xhr, url) => {
+//              xhr.open('GET', url, true);
+//              xhr.setRequestHeader('Access-Control-Request-Headers', 'Content-Length');
+//              window.console.log('xhrSetup', xhr, url);
+//            };
             Storage.gc();
           }
 
@@ -711,8 +785,6 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
             if (!context.rangeStart && !context.rangeEnd) {
 
               callbacks.onSuccess = async function(resp, stats, context, details = null) {
-                let blob = new Blob([resp.data]);
-                let buffer = resp.data.slice();
                 let status = details instanceof XMLHttpRequest ? details.status : 200;
 
                 if (status === 206
@@ -720,6 +792,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
                 ) {
                   console.warn('CONTENT LENGTH MISMATCH!', buffer.byteLength, frag.loaded);//, contentLength);
                 } else if (Config.get('enable_db_cache') && !window.Prototype) {
+                  let buffer = resp.data.slice();
                   frag.hasCache = true;
                   Storage.save({
                     hash,
@@ -820,8 +893,223 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
 
         }
 
+
+        class FetchLoader {
+          constructor(config) {
+            this.config = config;
+            this.onTimeout = this.onTimeout.bind(this);
+          }
+
+          abort () {
+            if (!this.stats.success) {
+              this.stats.aborted = true;
+            }
+            if (this.abortController) {
+              this.abortController.abort();
+            }
+            this.abortController = null;
+            if (this.timeoutTimer) {
+              this.timeoutTimer.cancel();
+            }
+            this.timeoutTimer = null;
+          }
+
+          destroy () {
+            this.abort();
+          }
+
+          load(context, config, callbacks) {
+            this.context = context;
+            this.config = config;
+            this.callbacks = callbacks;
+            this.stats = { loader: 'fetch', trequest: performance.now(), retry: 0, loaded: 0 };
+            this.retryDelay = config.retryDelay;
+            this.loadInternal(context, config, callbacks);
+          }
+
+          async loadInternal() {
+            let {stats, context, config, callbacks} = this;
+            let url = context.url;
+
+            let headers = {};
+
+            if (context.rangeEnd) {
+              headers['Range'] = `bytes=${context.rangeStart}-${context.rangeEnd - 1}`;
+            }
+
+            const abc = this.abortController = new AbortController();
+            let params = {
+              // method: 'GET',
+              // mode: 'cors',
+              // credentials: 'same-origin',
+              cache: 'force-cache',
+              signal: abc.signal,
+              headers: new Headers(headers)
+            };
+
+            let debounceTimeout = debounce(this.onTimeout, this.config.timeout);
+            this.timeoutTimer = debounceTimeout;
+            let onProgress = this.onProgress.bind(this);
+
+            let request = new Request(url, params);
+            let data;
+
+            try {
+              debounceTimeout();
+
+              let res;
+              for (let i = 0; i < Math.min(config.maxRetry, 3); i++) {
+                res = await fetch(request, params);
+                if (res.ok) {
+                  break;
+                }
+                console.warn('fetch fail', i, res, url, request, params);
+                if (status >= 400 && status < 499) {
+                  break;
+                }
+                await new Promise(res => setTimeout(res, this.retryDelay));
+              }
+
+              if (!res.ok) {
+                throw new Error('fetch, bad network response. ' + res);
+              }
+
+              debounceTimeout();
+
+              url = res.url;
+              stats.total = parseInt(res.headers.get('content-length'), 10);
+              stats.loaded = 0;
+              stats.tfirst = Math.max(stats.trequest, performance.now());
+
+              if (context.responseType !== 'arraybuffer') {
+                data = await res.text();
+              } else {
+                data = await new Response(new ReadableStream({
+                    start(controller) {
+                      const reader = res.body.getReader();
+                      let result, value, done;
+                      const read = async () => {
+                        do {
+                          result = await reader.read();
+                          // let {value, done} = result;
+                          debounceTimeout();
+
+                          let value = result.value;
+                          stats.loaded += value.byteLength;
+                          controller.enqueue(value);
+                          onProgress(value);
+                        } while (!result.done);
+                        controller.close();
+                      };
+                      read();
+                    }
+                  })
+                ).arrayBuffer();
+              }
+            } catch (e) {
+              callbacks.onError({ text: e.message }, context);
+            }
+
+            debounceTimeout.cancel();
+            this.timeoutTimer = null;
+            this.abortController = null;
+
+            if (data) {
+              let len = typeof data === 'string' ? data.length : data.byteLength;
+              Object.assign(stats, {
+                success: true,
+                tload: Math.max(stats.tfirst, performance.now()),
+                loaded: len,
+                total: len
+              });
+              callbacks.onSuccess({url, data}, stats, context);
+            } else {
+              this.abort();
+            }
+          }
+
+          onTimeout() {
+            console.warn('request timeout', this.stats, this.context);
+            this.abort();
+            this.callbacks.onTimeout(this.stats, this.context, null);
+          }
+
+          /**
+           * @param {ArrayBuffer} data
+           */
+          onProgress(data) {
+            let onProgress = this.callbacks.onProgress;
+            if (onProgress) {
+              onProgress(this.stats, this.context, data, null);
+            }
+          }
+
+        }
+
+
         FragmentLoaderClass = FragmentLoader;
         return FragmentLoaderClass;
+      };
+      /** @param  */
+      const objectUrlMap = {}; // {url: ObjectURL, time: number}
+      const keyclean = () => {
+        const keys = Object.keys(objectUrlMap)
+          .sort((a, b) => a.time - b.time);
+        while (keys.length > 100) {
+          const key = keys.shift();
+          URL.revokeObjectURL(objectUrlMap[key].url);
+          delete objectUrlMap[key];
+        }
+      };
+      const overrideKeyloader = (hls) => {
+        keyloader = hls.coreComponents.find(h => h.hasOwnProperty('decryptkey'));
+        if (!keyloader) {
+          console.warn('keyloader not founnd', hls.coreComponents);
+          return;
+        }
+        keyloader.onKeyLoading_org = keyloader.onKeyLoading.bind(keyloader)
+        keyloader.onKeyLoading = function(data) {
+          const uri = data.frag.decryptdata.uri;
+          const objUrl = objectUrlMap[uri].url;
+          if (objUrl) {
+            data.frag.decryptdata.uri = objUrl;
+          }
+          return this.onKeyLoading_org(data);
+
+        }.bind(keyloader);
+
+        keyloader.loadsuccess_org = keyloader.loadsuccess.bind(keyloader);
+        keyloader.loadsuccess = function(response, stats, context) {
+          if (this.decrypturl.startsWith('blob')) {
+            return this.loadsuccess_org(response, stats, context);
+          }
+          const blob = new Blob([new DataView(response.data)]);
+          objectUrlMap[this.decrypturl] =
+            {url: URL.createObjectURL(blob), time: Date.now()};
+          keyclean();
+          return this.loadsuccess_org(response, stats, context);
+        }.bind(keyloader);
+
+        ////////////////////
+
+        // const keyCache = {};
+        // keyloader = hls.coreComponents.find(h => h.hasOwnProperty('decryptkey'));
+
+        // keyloader.onKeyLoading_org = keyloader.onKeyLoading.bind(keyloader)
+        // keyloader.onKeyLoading = function(data) {
+        //   let uri = data.frag.decryptdata.uri;
+        //   if (keyCache[uri] && uri === this.decrypturl) {
+        //     this.decryptkey = keyCache[uri];
+        //   }
+        //   return this.onKeyLoading_org(data);
+        // }.bind(keyloader);
+
+        // keyloader.loadsuccess_org = keyloader.loadsuccess.bind(keyloader);
+        // keyloader.loadsuccess = function(response, stats, context) {
+        //  this.loadsuccess_org(response, stats, context);
+        //  keyCache[this.decrypturl] = this.decryptkey;
+        // }.bind(keyloader);
+
       };
 
       let idCounter = 0;
@@ -900,6 +1188,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
           this._hlsConfig = {};
           this._videoCount = 0;
           this._id = `id:${idCounter++}`;
+          this._bufferStats = [];
 
           this._playerMode = PLAYER_MODE.DEFAULT;
           this._eventWrapperMap = new Map();
@@ -1182,6 +1471,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
           this._isSeeking = false;
           this._isBufferCompleted = false;
           this._throttledCurrentTime.cancel();
+          this._bufferStats = [];
         }
 
         get _useNativeHLS() {
@@ -1233,6 +1523,10 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
             this._hls.stopLoad();
             this._hls.detachMedia();
             this._hls.destroy();
+            if (this._fragmentLoader) {
+              delete this._hlsConfig.fLoader;
+              delete this._fragmentLoader;
+            }
             this._hls = null;
           }
         }
@@ -1249,7 +1543,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
             //}
             this._fragmentLoader = createFragmentLoader(Hls);
             this._hlsConfig.fLoader = this._fragmentLoader;
-            let hls = new Hls(this._hlsConfig);
+            const hls = new Hls(this._hlsConfig);
             this._hls = hls;
 
             this._hls.on(Hls.Events.MANIFEST_PARSED,
@@ -1262,12 +1556,15 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
               this._onHLSJSError.bind(this));
             this._hls.on(Hls.Events.FRAG_LOADED,
               this._onHLSJSFragLoaded.bind(this));
+            // this._hls.on(Hls.Events.FRAG_BUFFERED,
+            //   this._onHLSJSFragBuffered.bind(this));
             this._hls.on(Hls.Events.BUFFER_EOS,
               this._onHLSJSBufferEOS.bind(this));
             this.dispatchEvent(new CustomEvent('init-hls-js', {detail: {hls: hls}}));
             this._hls.on(Hls.Events.MEDIA_ATTACHED, () => {
               this._hls.loadSource(src);
             });
+            // overrideKeyloader(hls);
             this._hls.attachMedia(this._video);
           }
           return this._hls;
@@ -1277,7 +1574,9 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
           //console.log('%cHls.Events.MANIFEST_PARSED', 'background: cyan;', this._src);
           this._manifest = data;
           this._levelData = [];
-          this._fragmentLoader.levels = data.levels;
+          if (this._fragmentLoader) {
+            this._fragmentLoader.levels = data.levels;
+          }
           this.dispatchEvent(new Event('loadedmetadata'));
           this.dispatchEvent(new Event('canplay'));
         }
@@ -1285,6 +1584,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
         _onHLSJSLevelLoaded(eventName, data) {
           //console.log('%cHls.Events.LEVEL_LOADED', 'background: cyan;', this._src);//, data);
           this._levelData[data.level] = data.details;
+          this._bufferStats.length = data.details.endSN || 0;
         }
 
         _onHLSJSLevelSwitched()  {
@@ -1308,6 +1608,16 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
               bitrate: level.bitrate
             }}));
           }
+        }
+
+        _onHLSJSFragBuffered(eventName, data) {
+          const { trequest, tfirst, tbuffered, total} = data.stats;
+          const { duration, level, sn } = data.frag;
+          const totalTime = tbuffered - trequest;
+          const transferKbps = Math.round((total * 8) / ((tbuffered - trequest) - (tfirst - trequest)));
+          const dataKbps = Math.round((total * 8) / duration);
+          this._bufferStats[sn] = {totalTime, transferKbps, dataKbps, level, sn};
+          // console.log('rate', {totalTime, transferKbps, dataKbps, level, sn});
         }
 
         _blinkLabel() {
@@ -1419,15 +1729,14 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
       }
       if (!Hls) {
         const s = document.createElement('script');
-        s.src = `https://cdn.jsdelivr.net/npm/hls.js@${Config.get('hls_js_ver')}`;
-        console.info('load hls.js from', s.src);
         s.onload = () => {
           Hls = window.Hls;
           console.info('hls.js loaded:', window.Hls.version);
         };
-        document.body.appendChild(s);
+        s.src = `https://cdn.jsdelivr.net/npm/hls.js@${Config.get('hls_js_ver')}`;
+        // console.info('load hls.js from', s.src);
+        document.documentElement.append(s);
       } else {
-        Hls = window.Hls;
         console.info('hls.js ready:', window.Hls.version);
       }
       return ZenzaVideoElement;
@@ -1832,7 +2141,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
             this._root.close();
           }
         }
-        
+
         toggle() {
           if (!this._root) { return; }
           if (this.isOpen) {
@@ -1989,7 +2298,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
               cursor: pointer;
               white-space: nowrap;
             }
-            
+
             button[data-command="clear-cache"] {
               width: auto;
             }
@@ -2114,51 +2423,67 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
     };
 
     const ZenzaDetector = (() => {
-      let isReady = false;
       let ZenzaWatch = null;
-      const emitter = new Emitter();
+      let beforePromise, beforeResolve;
+      let afterPromise, afterResolve;
 
       let initialize = () => {
         initialize = () => {};
         const onBeforeZenzaReady = () => {
+          if (ZenzaWatch && ZenzaWatch.debug.isHLSSupported) {
+            return;
+          }
           ZenzaWatch = window.ZenzaWatch;
-          ZenzaWatch.debug.isHLSSupported = true;
-          //ZenzaWatch.debug.VideoSession = VideoSession;
-
-          emitter.emit('beforeready', ZenzaWatch);
+          beforeResolve && beforeResolve(ZenzaWatch);
         };
 
         const onZenzaReady = () => {
-          isReady = true;
-          emitter.emit('ready', ZenzaWatch);
+          ZenzaWatch = window.ZenzaWatch;
+          beforeResolve && beforeResolve(ZenzaWatch);
+          afterResolve && afterResolve(ZenzaWatch);
         };
 
         if (window.ZenzaWatch && window.ZenzaWatch.ready) {
-          //window.console.log('ZenzaWatch is Ready ZenzaHLS');
+          window.console.log('ZenzaWatch is Ready ZenzaHLS');
           onBeforeZenzaReady();
           onZenzaReady();
         } else {
-          document.body.addEventListener('BeforeZenzaWatchInitialize', () => {
-            //window.console.log('BeforeZenzaWatchInitialize ZenzaHLS');
+          if (window.ZenzaWatch) {
             onBeforeZenzaReady();
-          }, {once: true});
-          document.body.addEventListener('ZenzaWatchInitialize', () => {
-            //window.console.log('ZenzaWatchInitialize ZenzaHLS');
-            onZenzaReady();
-          }, {once: true});
+          }
+          document.addEventListener('DOMContentLoaded', () => {
+            if (window.ZenzaWatch && window.ZenzaWatch.ready) {
+              onBeforeZenzaReady();
+              onZenzaReady();
+              return;
+            }
+            document.body.addEventListener('BeforeZenzaWatchInitialize', z => {
+              // window.console.log('BeforeZenzaWatchInitialize ZenzaHLS', z);
+              onBeforeZenzaReady(z);
+            }, {once: true});
+            document.body.addEventListener('ZenzaWatchInitialize', () => {
+              // window.console.log('ZenzaWatchInitialize ZenzaHLS');
+              onZenzaReady();
+            }, {once: true});
+          });
         }
       };
 
       const detect = (timing = 'ready') => {
         initialize();
-        return new Promise(res => {
-          if (isReady || (timing === 'beforeready' && ZenzaWatch)) {
-            return res(ZenzaWatch);
+        if (window.ZenzaWatch && window.ZenzaWatch.ready) {
+          return Promise.resolve(window.ZenzaWatch);
+        } else if (timing === 'beforeready') {
+          if (!beforePromise) {
+            beforePromise = new Promise(res => { beforeResolve = res; });
           }
-          emitter.on(timing, () => {
-            res(ZenzaWatch);
-          });
-        });
+          return beforePromise;
+        } else {
+          if (!afterPromise) {
+            afterPromise = new Promise(res => { afterResolve = res; });
+          }
+          return afterPromise;
+        }
       };
 
       return {
@@ -2223,7 +2548,7 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
         });
 
         ZenzaWatch.debug.hlsDebugDialog = d;
-        document.body.appendChild(d);
+        document.body.append(d);
         d.open();
 
         ZenzaWatch.emitter.on('command-toggleHLSDebug', () => {
@@ -2240,9 +2565,63 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
         hlsConfig[key] = value;
       });
 
+      let lastLevel = -1;
+      const createVideoElement = usecase => {
+        if (!window.customElements) {
+          return document.createElement('video');
+        }
+        const video =  document.createElement('zenza-video');
+        if (usecase === 'capture') {
+          //return null;
+          // 静止画キャプチャ用なのにどんどんバッファするのは無駄なので抑える
+          video.setAttribute('data-usecase', 'capture');
+          video.hlsConfig = {
+            autoStartLoad: false,
+            // maxBufferSize: 0,
+            // maxBufferLength: 5,
+            // maxMaxBufferLength: 5,
+            manifestLoadingRetryDelay: 5000,
+            levelLoadingRetryDelay: 5000,
+            fragLoadingRetryDelay: 5000,
+            fragLoadingMaxRetry: 3,
+            levelLoadingMaxRetry: 1,
+            abrEwmaDefaultEstimate:
+            ZenzaWatch.debug.hlsConfig.abrEwmaDefaultEstimate,
+            startLevel: lastLevel
+          };
+          video.addEventListener('init-hls-js', ({detail: {hls}}) => {
+            hls.autoLevelCapping = lastLevel;
+          });
+        } else {
+          video.setAttribute('show-video-label', Config.get('show_video_label') ? 'on' : 'off');
+          video.hlsConfig = hlsConfig;
+          video.addEventListener('levelswitched', e => {
+            const detail = e.detail;
+            //const kbps = Math.round(detail.bitrate * 10 / 1024) / 10;
+            //console.log('Hls.Events.LEVEL_SWITCHED level: %s, size: %sx%s, %sKbps',
+            //  detail.level,
+            //  detail.width,
+            //  detail.height,
+            //  kbps
+            //);
+            lastLevel = detail.level;
+            if (Config.get('autoAbrEwmaDefaultEstimate')) {
+              ZenzaWatch.debug.hlsConfig.abrEwmaDefaultEstimate =
+                Math.round(detail.bitrate * 0.8);
+            }
+          });
+          primaryVideo = video;
+        }
+        video.setAttribute('use-native-hls', Config.get('use_native_hls') ? 'yes' : 'no');
+        return video;
+      };
+
+      window.ZenzaHLS = {
+        createVideoElement
+      };
 
       ZenzaDetector.detect('beforeready').then(ZenzaWatch => {
-        util = ZenzaWatch.util;
+        ZenzaWatch.debug.isHLSSupported = true;
 
         ZenzaWatch.debug.hlsConfig = {};
         Object.keys(Config.raw).forEach(key => {
@@ -2252,65 +2631,14 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
           });
         });
 
-        let lastLevel = -1;
-        ZenzaWatch.debug.createVideoElement = usecase => {
-          if (!window.customElements) {
-            return document.createElement('video');
-          }
-          const video =  document.createElement('zenza-video');
-          if (usecase === 'capture') {
-            //return null;
-            // 静止画キャプチャ用なのにどんどんバッファするのは無駄なので抑える
-            video.setAttribute('data-usecase', 'capture');
-            video.hlsConfig = {
-              autoStartLoad: false,
-              // maxBufferSize: 0,
-              // maxBufferLength: 5,
-              // maxMaxBufferLength: 5,
-              manifestLoadingRetryDelay: 5000,
-              levelLoadingRetryDelay: 5000,
-              fragLoadingRetryDelay: 5000,
-              fragLoadingMaxRetry: 3,
-              levelLoadingMaxRetry: 1,
-              abrEwmaDefaultEstimate:
-                ZenzaWatch.debug.hlsConfig.abrEwmaDefaultEstimate,
-              startLevel: lastLevel
-            };
-            video.addEventListener('init-hls-js', ({detail: {hls}}) => {
-              hls.autoLevelCapping = lastLevel;
-            });
-          } else {
-            video.setAttribute('show-video-label', Config.get('show_video_label') ? 'on' : 'off');
-            video.hlsConfig = hlsConfig;
-            video.addEventListener('levelswitched', e => {
-              const detail = e.detail;
-              //const kbps = Math.round(detail.bitrate * 10 / 1024) / 10;
-              //console.log('Hls.Events.LEVEL_SWITCHED level: %s, size: %sx%s, %sKbps',
-              //  detail.level,
-              //  detail.width,
-              //  detail.height,
-              //  kbps
-              //);
-              lastLevel = detail.level;
-              if (Config.get('autoAbrEwmaDefaultEstimate')) {
-                ZenzaWatch.debug.hlsConfig.abrEwmaDefaultEstimate =
-                  Math.round(detail.bitrate * 0.8);
-              }
-            });
-            primaryVideo = video;
-          }
-          video.setAttribute('use-native-hls', Config.get('use_native_hls') ? 'yes' : 'no');
-          return video;
-        };
+        ZenzaWatch.debug.createVideoElement = createVideoElement;
         return ZenzaWatch;
       }).then(ZenzaWatch => {
-        console.time('dynamic import');
 
         Promise.all([
-          import('https://cdn.jsdelivr.net/npm/lit-html@0.9.0/lit-html.min.js'),
+          dimport('https://unpkg.com/lit-html?module'),
         //  import('https://cdn.rawgit.com/lodash/lodash/4.17.4-es/lodash.default.js')
         ]).then(([{html, render}]) => {
-          console.timeEnd('dynamic import');
           initDebug({hlsConfig, html, render, ZenzaWatch});
         });
         console.timeEnd('ZenzaWatch HLS');
@@ -2329,20 +2657,43 @@ const modules = {ErrorEvent, MediaError, HTMLDialogElement, DOMException};
       return;
     }
   }
-  if (!document.body) {
-    return;
+  try {
+    if (Hls) {
+      console.log('hls.js@%s required', Hls.version);
+      window.Hls = Hls;
+    } else
+    if (window && !window.Hls) {
+      const hlsjs = document.createElement('script');
+      hlsjs.id = 'HLSJS_Loader';
+      hlsjs.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+      hlsjs.onerror = e => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <h2>* ZenzaWatch HLS *</h2>
+          <a href="${hlsjs.src}" target="_blank">${hlsjs.src}</a> の読み込みに失敗しました。<br>
+          他のアドオン等でブロックされている可能性があります。`;
+        div.onclick = () => {
+          div.remove();
+        };
+        Object.assign(div.style, {
+          position: 'fixed', zIndex: '100000',
+          bottom: '32px', left: '32px', padding: '8px',
+          background: 'rgba(153, 0, 0, 0.8)', color: '#fff', fontWeight: 'bold'
+        });
+        document.documentElement.append(div);
+      };
+      document.documentElement.append(hlsjs);
+    }
+  } catch (e) {
+    console.warn('ZenzaHLS: ', e);
   }
-
-  let script = document.createElement('script');
+  const script = document.createElement('script');
   script.id = 'ZenzaWatchHLSLoader';
-  script.setAttribute('type', 'module');
   script.setAttribute('charset', 'UTF-8');
-  script.appendChild(
-    document.createTextNode(`
-      ${MODULES}
-      (${monkey})('${PRODUCT}', modules);
-    ` )
-  );
-  document.body.appendChild(script);
-})();
+  script.append(`
+    ${MODULES}
+    (${monkey})('${PRODUCT}', ZenzaHLSmodules);
+  `);
+  document.documentElement.append(script);
+});
 

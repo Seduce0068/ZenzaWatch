@@ -6,37 +6,36 @@
 // @grant          none
 // @author         segabito macmoto
 // @license        public domain
-// @version        0.0.2
+// @version        0.0.3
 // ==/UserScript==
+/* eslint-disable */
 
 
-(function() {
+(function(window) {
   const addStyle = function(styles, id) {
     const elm = document.createElement('style');
-    //window.setTimeout(function() {
-      elm.type = 'text/css';
-      if (id) { elm.id = id; }
-
-      var text = styles.toString();
-      text = document.createTextNode(text);
-      elm.appendChild(text);
-      var head = document.getElementsByTagName('head');
-      head = head[0];
-      head.appendChild(elm);
-    //}, 0);
+    elm.type = 'text/css';
+    if (id) { elm.id = id; }
+    elm.append(styles.toString());
+    document.head.append(elm);
     return elm;
   };
 
   const postMessage = function(type, message, token) {
     const origin = document.referrer;
+    const {command, watchId} = message;
     try {
-      parent.postMessage(JSON.stringify({
+          parent.postMessage(JSON.stringify({ // 互換のため冗長
           id: 'ZenzaWatch',
-          type: type, // '',
+          type,
+          token,
           body: {
-            token: token,
+            token,
             url: location.href,
-            message: message
+            message: {command, watchId},
+            command: 'message', params: {
+              command, params: { watchId }
+            }
           }
         }),
         origin);
@@ -76,14 +75,14 @@
     const button = document.createElement('button');
     button.innerHTML = '<span>Zen</span>';
     button.id = 'zenzaButton';
-    document.body.appendChild(button);
+    document.body.append(button);
     button.onclick = (e) => {
       postMessage('blogParts', {
         command: e.shiftKey ? 'send' : 'open',
-        watchId: watchId
+        watchId
       });
     };
   };
 
   blogPartsApi();
-})();
+})(globalThis ? globalThis.window : window);
