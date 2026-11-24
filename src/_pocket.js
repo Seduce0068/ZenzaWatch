@@ -3776,7 +3776,7 @@ const thumbInfoApi = async function() {
     if (TOKEN !== token ||
       p.hostname !== location.host ||
       !p.pathname.startsWith('/api/getthumbinfo/')) {
-      console.log('invalid msg: ', {origin: e.origin, TOKEN, token, body});
+      console.log('invalid msg: ', {origin: e.origin, command});
       return;
     }
     params.options = params.options || {};

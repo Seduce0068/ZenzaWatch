@@ -168,8 +168,9 @@ const ObjectObserver = (() => {
     }
   }
 
+  // 設定値の全文はログに出さず、変更されたキーだけを記録する。
   const defCallback = (key, newValue, oldValue, details) =>
-      window.console.log({key, newValue, oldValue, details});
+      window.console.log('config changed: %s', key);
 
   const observe = (target, callback, params = {parent: null, path: ''}) => {
     callback = callback || defCallback;

@@ -26,7 +26,6 @@ const {ThreadLoader} = (() => {
     async getThreadKey(videoId, options = {}) {
       let url = `https://nvapi.nicovideo.jp/v1/comment/keys/thread?videoId=${videoId}`;
 
-      console.log('getThreadKey url: ', url);
       try {
         const { meta, data } = await netUtil.fetch(url, {
           headers: {
@@ -48,7 +47,6 @@ const {ThreadLoader} = (() => {
     async getPostKey(threadId, options = {}) {
       const url = `https://nvapi.nicovideo.jp/v1/comment/keys/post?threadId=${threadId}`;
 
-      console.log('getPostKey url: ', url);
       try {
         const { meta, data } = await netUtil.fetch(url, {
           headers: {
@@ -126,7 +124,6 @@ const {ThreadLoader} = (() => {
 
       if (options.retrying) {
         const info = await this.getThreadKey(msgInfo.videoId, options);
-        console.log('threadKey: ', msgInfo.videoId, info);
         packet.threadKey = info.threadKey;
       }
 
@@ -139,7 +136,6 @@ const {ThreadLoader} = (() => {
       }
 
       const url = new URL('/v1/threads', server);
-      console.log('load threads...', url, packet);
       try {
         const { meta, data } = await netUtil.fetch(url, {
           method: 'POST',
@@ -237,7 +233,6 @@ const {ThreadLoader} = (() => {
         postKey,
         videoId,
       });
-      console.log('post packet: ', packet);
       try {
         const { no, id } = await this._post(url, packet);
         return {
@@ -271,7 +266,6 @@ const {ThreadLoader} = (() => {
     async getDeleteKey(threadId, options = {}) {
       const url = `https://nvapi.nicovideo.jp/v1/comment/keys/delete?threadId=${threadId}&fork=${options.fork || 'main'}`;
 
-      console.log('getNicoruKey url: ', url);
       try {
         const { meta, data } = await netUtil.fetch(url, {
           headers: {
@@ -309,7 +303,6 @@ const {ThreadLoader} = (() => {
         }],
         videoId,
       });
-      console.log('put packet: ', packet);
       try {
         await this._delete(url, packet);
         return {
@@ -329,7 +322,6 @@ const {ThreadLoader} = (() => {
     async getNicoruKey(threadId, options = {}) {
       const url = `https://nvapi.nicovideo.jp/v1/comment/keys/nicoru?threadId=${threadId}`;
 
-      console.log('getNicoruKey url: ', url);
       try {
         const { meta, data } = await netUtil.fetch(url, {
           headers: {
@@ -363,7 +355,6 @@ const {ThreadLoader} = (() => {
         nicoruKey,
         videoId,
       });
-      console.log('post packet: ', packet);
       try {
         const { nicoruId, nicoruCount } = await this._post(url, packet);
         return {

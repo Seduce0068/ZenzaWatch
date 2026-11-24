@@ -55,7 +55,6 @@ class PlayList extends VideoList {
       return;
     }
     this._initializeView();
-    console.log('unserialize: ', data);
     this.model.unserialize(data.items);
     this._isEnable = data.enable;
     this._isLoop = data.loop;

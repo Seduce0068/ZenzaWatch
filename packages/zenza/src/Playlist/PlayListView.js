@@ -148,7 +148,6 @@ class PlayListView extends Emitter {
 
     const fileReader = new FileReader();
     fileReader.onload = ev => {
-      window.console.log('file data: ', ev.target.result);
       this.emit('command', 'importFile', ev.target.result);
     };
 
@@ -164,7 +163,6 @@ class PlayListView extends Emitter {
 
     const fileReader = new FileReader();
     fileReader.onload = ev => {
-      window.console.log('file data: ', ev.target.result);
       this.emit('command', 'importFile', ev.target.result);
     };
 

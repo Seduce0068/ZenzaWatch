@@ -863,15 +863,19 @@ const workerUtil = (() => {
             req.onupgradeneeded = e => {
               const db = e.target.result;
 
-              if(db.objectStoreNames.contains(this.name)) {
-                db.deleteObjectStore(this.name);
-              }
-
+              // 差分マイグレーション: 既存ストアを削除せずレコードを保持する。
               const [meta] = this.storeNames;
-              const store = db.createObjectStore(meta,
-                {keyPath: 'expiresAt', autoIncrement: false});
-              store.createIndex('hash', 'hash', {unique: true});
-              store.createIndex('videoId', 'videoId', {unique: false});
+              const tx = e.target.transaction;
+              const store = db.objectStoreNames.contains(meta) ?
+                tx.objectStore(meta) :
+                db.createObjectStore(meta,
+                  {keyPath: 'expiresAt', autoIncrement: false});
+              if (!store.indexNames.contains('hash')) {
+                store.createIndex('hash', 'hash', {unique: true});
+              }
+              if (!store.indexNames.contains('videoId')) {
+                store.createIndex('videoId', 'videoId', {unique: false});
+              }
             };
 
             req.onsuccess = e => {
@@ -1045,9 +1049,10 @@ const workerUtil = (() => {
               this.isBusy = false;
             };
           }).catch((e) => {
+            // GC 失敗時にストア全体を削除しない。
             this.isBusy = false;
             console.error('gc fail', e);
-            store.clear();
+            throw e;
           });
         }
 

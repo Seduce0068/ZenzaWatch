@@ -2850,7 +2850,7 @@ class DataStorage {
 				try {
 					this._data[key] = JSON.parse(storage[storageKey]);
 				} catch (e) {
-					console.error('config parse error key:"%s" value:"%s" ', key, storage[storageKey], e);
+					console.error('config parse error key:"%s"', key, e);
 					delete storage[storageKey];
 					this._data[key] = this.default[key];
 				}
@@ -2873,7 +2873,7 @@ class DataStorage {
 			try {
 				this._data[key] = JSON.parse(storage[storageKey]);
 			} catch (e) {
-				console.error('config parse error key:"%s" value:"%s" ', key, storage[storageKey], e);
+				console.error('config parse error key:"%s"', key, e);
 			}
 		}
 		return this._data[key];
@@ -2930,7 +2930,7 @@ class DataStorage {
 		Object.keys(this.props)
 			.forEach(key => {
 				const val = data.hasOwnProperty(key) ? data[key] : this.default[key];
-				console.log('import data: %s=%s', key, val);
+				console.log('import data: %s', key);
 				this.setValueSilently(key, val);
 		});
 	}
@@ -3303,7 +3303,7 @@ class CrossDomainGate extends Emitter {
 		const {id, type, token, sessionId, body} = data;
 		if (id !== PRODUCT || type !== this._type || token !== TOKEN) {
 			console.warn('invalid token:',
-				{id, PRODUCT, type, _type: this._type, token, TOKEN});
+				{id, type, _type: this._type});
 			return;
 		}
 		if (!this.port && body.command === 'initialized') {
@@ -3620,7 +3620,7 @@ const MylistApiLoader = (() => {
 			if (!token) {
 				token = cacheStorage.getItem('csrfToken');
 				if (token) {
-					console.log('cached token exists', token);
+					console.log('cached token exists');
 				}
 			}
 		}
@@ -3639,7 +3639,7 @@ const MylistApiLoader = (() => {
 				}
 				token = cacheStorage.getItem('csrfToken');
 				if (token) {
-						console.log('cached token exists', token);
+						console.log('cached token exists');
 				}else{
 						const tokenUrl = 'https://www.nicovideo.jp/my/mylist';
 						const result = await netUtil.fetch( tokenUrl, {
@@ -6024,18 +6024,17 @@ const IndexedDbStorage = (() => {
 					const req = indexedDB.open(name, ver);
 					req.onupgradeneeded = e => {
 						const _db = e.target.result;
+						const tx = e.target.transaction;
+						// 差分マイグレーション: 既存ストアのレコードを保持する。
 						for (const meta of stores) {
-							if(_db.objectStoreNames.contains(meta.name)) {
-								_db.deleteObjectStore(meta.name);
+							const store = _db.objectStoreNames.contains(meta.name) ?
+								tx.objectStore(meta.name) :
+								_db.createObjectStore(meta.name, meta.definition);
+							for (const idx of meta.indexes || []) {
+								if (!store.indexNames.contains(idx.name)) {
+									store.createIndex(idx.name, idx.keyPath, idx.params);
+								}
 							}
-							const store = _db.createObjectStore(meta.name, meta.definition);
-							const indexes = meta.indexes || [];
-							for (const idx of indexes) {
-								store.createIndex(idx.name, idx.keyPath, idx.params);
-							}
-							store.transaction.oncomplete = () => {
-								console.log('store.transaction.complete', JSON.stringify({name, ver, store: meta}));
-							};
 						}
 					};
 					req.onsuccess = e => {
@@ -6159,8 +6158,9 @@ const IndexedDbStorage = (() => {
 					};
 					req.onerror = reject;
 				}).catch(e => {
+					// GC 失敗時にストア全体を削除しない。
 					console.error('gc fail', {name, storeName, data: {expireTime, index}, timekey}, e);
-					store.clear();
+					throw e;
 				});
 			}
 		};
@@ -6421,7 +6421,7 @@ const gate = () => {
     if (TOKEN !== token ||
       p.hostname !== location.host ||
       !p.pathname.startsWith('/api/getthumbinfo/')) {
-      console.log('invalid msg: ', {origin: e.origin, TOKEN, token, body});
+      console.log('invalid msg: ', {origin: e.origin, command});
       return;
     }
     params.options = params.options || {};

@@ -720,7 +720,7 @@ class DataStorage {
 				try {
 					this._data[key] = JSON.parse(storage[storageKey]);
 				} catch (e) {
-					console.error('config parse error key:"%s" value:"%s" ', key, storage[storageKey], e);
+					console.error('config parse error key:"%s"', key, e);
 					delete storage[storageKey];
 					this._data[key] = this.default[key];
 				}
@@ -743,7 +743,7 @@ class DataStorage {
 			try {
 				this._data[key] = JSON.parse(storage[storageKey]);
 			} catch (e) {
-				console.error('config parse error key:"%s" value:"%s" ', key, storage[storageKey], e);
+				console.error('config parse error key:"%s"', key, e);
 			}
 		}
 		return this._data[key];
@@ -800,7 +800,7 @@ class DataStorage {
 		Object.keys(this.props)
 			.forEach(key => {
 				const val = data.hasOwnProperty(key) ? data[key] : this.default[key];
-				console.log('import data: %s=%s', key, val);
+				console.log('import data: %s', key);
 				this.setValueSilently(key, val);
 		});
 	}

@@ -13,19 +13,19 @@ const IndexedDbStorage = (() => {
           const req = indexedDB.open(name, ver);
           req.onupgradeneeded = e => {
             const _db = e.target.result;
+            const tx = e.target.transaction;
 
+            // 差分マイグレーション: 既存ストアは削除せずレコードを保持する。
+            // 追加されたストアと欠けているインデックスのみを作成する。
             for (const meta of stores) {
-              if(_db.objectStoreNames.contains(meta.name)) {
-                _db.deleteObjectStore(meta.name);
+              const store = _db.objectStoreNames.contains(meta.name) ?
+                tx.objectStore(meta.name) :
+                _db.createObjectStore(meta.name, meta.definition);
+              for (const idx of meta.indexes || []) {
+                if (!store.indexNames.contains(idx.name)) {
+                  store.createIndex(idx.name, idx.keyPath, idx.params);
+                }
               }
-              const store = _db.createObjectStore(meta.name, meta.definition);
-              const indexes = meta.indexes || [];
-              for (const idx of indexes) {
-                store.createIndex(idx.name, idx.keyPath, idx.params);
-              }
-              store.transaction.oncomplete = () => {
-                console.log('store.transaction.complete', JSON.stringify({name, ver, store: meta}));
-              };
             }
           };
           req.onsuccess = e => {
@@ -151,8 +151,9 @@ const IndexedDbStorage = (() => {
           };
           req.onerror = reject;
         }).catch(e => {
+          // GC 失敗時にストア全体を消すとキャッシュが全失われるため、失敗を通知するだけにする。
           console.error('gc fail', {name, storeName, data: {expireTime, index}, timekey}, e);
-          store.clear();
+          throw e;
         });
       }
 

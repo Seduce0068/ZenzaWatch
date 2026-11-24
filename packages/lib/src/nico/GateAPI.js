@@ -24,7 +24,7 @@ const GateAPI = (() => {
       if (TOKEN !== token ||
         p.hostname !== location.host ||
         !p.pathname.startsWith('/api/getthumbinfo/')) {
-        console.log('invalid msg: ', {origin: e.origin, TOKEN, token, body});
+        console.log('invalid msg: ', {origin: e.origin, command});
         return;
       }
       params.options = params.options || {};
@@ -104,7 +104,7 @@ const GateAPI = (() => {
           try {
             config[key] = JSON.parse(localStorage.getItem(storageKey));
           } catch (e) {
-            window.console.error('config parse error key:"%s" value:"%s" ', key, localStorage.getItem(storageKey), e);
+            window.console.error('config parse error key:"%s"', key, e);
           }
         }
       });
@@ -225,7 +225,7 @@ const GateAPI = (() => {
       const {body, sessionId, token} = data;
       const {command, params} = body;
       if (TOKEN !== token) {
-        console.log('invalid msg: ', {origin: e.origin, TOKEN, token, body});
+        console.log('invalid msg: ', {origin: e.origin, command});
         return;
       }
       try {
@@ -305,7 +305,7 @@ const GateAPI = (() => {
       const {command, params} = body;
       if (command !== 'videoCapture') { return; }
       if (TOKEN !== token) {
-        window.console.log('invalid msg: ', {origin: e.origin, TOKEN, token, body});
+        window.console.log('invalid msg: ', {origin: e.origin, command});
         return;
       }
 
@@ -328,7 +328,7 @@ const GateAPI = (() => {
       const p = parseUrl(params.url);
       if (TOKEN !== token ||
         p.hostname !== location.host) {
-        console.log('invalid msg: ', {origin: e.origin, TOKEN, token, body});
+        console.log('invalid msg: ', {origin: e.origin, command});
         return;
       }
       params.options = params.options || {};

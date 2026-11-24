@@ -469,7 +469,7 @@ const ZenzaDetector = (() => {
                 }
               }
             } catch (e) {
-              window.console.error('config parse error key:"%s" value:"%s" ', key, localStorage.getItem(storageKey), e);
+              window.console.error('config parse error key:"%s"', key, e);
               config[key] = defaultConfig[key];
             }
           } else {

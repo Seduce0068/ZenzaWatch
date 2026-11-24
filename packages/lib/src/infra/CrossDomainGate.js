@@ -79,8 +79,8 @@ class CrossDomainGate extends Emitter {
     const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
     const {id, type, token, sessionId, body} = data;
     if (id !== PRODUCT || type !== this._type || token !== TOKEN) {
-      console.warn('invalid token:',
-        {id, PRODUCT, type, _type: this._type, token, TOKEN});
+      // 共有 TOKEN / 受信トークンはログに出さない。
+      console.warn('invalid token:', {id, type, _type: this._type});
       return;
     }
 
