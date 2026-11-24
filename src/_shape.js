@@ -13,7 +13,8 @@
 // @version     0.3.2
 // @grant       none
 // @author      名無しさん
-// @license     public domain
+// @license     AGPL-3.0-or-later
+// 上流 segabito/ZenzaWatch 版は public domain を宣言。本 fork は AGPL-3.0-or-later に統一。
 // ==/UserScript==
 import {css} from '../packages/lib/src/css/css';
 import {throttle} from '../packages/lib/src/infra/bounce';

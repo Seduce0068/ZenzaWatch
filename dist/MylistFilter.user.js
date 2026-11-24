@@ -7,7 +7,8 @@
 // @author         名無しさん@匿名希望
 // @version        0.0.1
 // @run-at         document-body
-// @license        public domain
+// @license        AGPL-3.0-or-later
+// 上流 segabito/ZenzaWatch 版は public domain を宣言。本 fork は AGPL-3.0-or-later に統一。
 // @noframes
 // ==/UserScript==
 /* eslint-disable */

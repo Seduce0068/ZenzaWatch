@@ -5,10 +5,11 @@
 // @include     *://*.nicovideo.jp/*
 // @version     1.5.3
 // @author      segabito macmoto
-// @license     public domain
+// @license     AGPL-3.0-or-later
+// 上流 segabito/ZenzaWatch 版は public domain を宣言。本 fork は AGPL-3.0-or-later に統一。
 // @grant       none
 // @noframes
-// @downloadURL    https://github.com/onoderakeita/ZenzaWatch/raw/playlist-deploy/dist/ZenzaGamePad.user.js
+// @downloadURL    https://github.com/Seduce0068/ZenzaWatch/raw/playlist-deploy/dist/ZenzaGamePad.user.js
 // ==/UserScript==
 /* eslint-disable */
 

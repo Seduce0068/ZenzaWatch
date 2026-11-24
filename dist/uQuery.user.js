@@ -7,9 +7,10 @@
 // @author         guest
 // @version        0.0.1
 // @run-at         document-start
-// @license        public domain
+// @license        AGPL-3.0-or-later
+// 上流 segabito/ZenzaWatch 版は public domain を宣言。本 fork は AGPL-3.0-or-later に統一。
 // @noframes
-// @downloadURL    https://github.com/onoderakeita/ZenzaWatch/raw/playlist-deploy/dist/uQuery.user.js
+// @downloadURL    https://github.com/Seduce0068/ZenzaWatch/raw/playlist-deploy/dist/uQuery.user.js
 // ==/UserScript==
 /* eslint-disable */
 const AntiPrototypeJs = function() {

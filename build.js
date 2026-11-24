@@ -50,7 +50,7 @@ let REQMAP = {};
 // 配布元の既定値。fork から配布する場合はここを変えるか、
 // --download-base=<url> / ZW_DOWNLOAD_BASE で上書きする。
 const DEFAULT_DOWNLOAD_BASE =
-  'https://github.com/onoderakeita/ZenzaWatch/raw/playlist-deploy';
+  'https://github.com/Seduce0068/ZenzaWatch/raw/playlist-deploy';
 
 const throttle = (func, interval) => {
   let lastTime = 0;

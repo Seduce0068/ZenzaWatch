@@ -6,7 +6,13 @@ Greasemonkeyスクリプトとして動作します。
 
 ## ライセンス
 
-`master` から分岐させたコードにライセンスするなら CC0 あるいは WTFPL あたり
+本 fork は `AGPL-3.0-or-later` で公開します（[LICENSE](LICENSE) を参照）。
+
+<!--
+上流 segabito/ZenzaWatch（https://github.com/segabito/ZenzaWatch）由来のコードには
+public domain とする宣言が付されています。本 fork では当該上流の条件を尊重しつつ、
+fork 後に加えた変更と配布物の表記を AGPL-3.0-or-later に統一しています。
+-->
 
 
 ## インストール

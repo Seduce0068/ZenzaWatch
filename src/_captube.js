@@ -7,7 +7,8 @@
 // @include     https://youtube.com/*
 // @version     0.0.11
 // @grant       none
-// @license     public domain
+// @license     AGPL-3.0-or-later
+// 上流 segabito/ZenzaWatch 版は public domain を宣言。本 fork は AGPL-3.0-or-later に統一。
 // ==/UserScript==
 
 import {workerUtil} from '../packages/lib/src/infra/workerUtil';

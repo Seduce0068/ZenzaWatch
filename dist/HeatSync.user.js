@@ -18,9 +18,10 @@
 // @version     0.0.18 Another.1
 // @grant       none
 // @author      segabito macmoto
-// @license     public domain
+// @license     AGPL-3.0-or-later
+// 上流 segabito/ZenzaWatch 版は public domain を宣言。本 fork は AGPL-3.0-or-later に統一。
 // @noframes
-// @downloadURL    https://github.com/onoderakeita/ZenzaWatch/raw/playlist-deploy/dist/HeatSync.user.js
+// @downloadURL    https://github.com/Seduce0068/ZenzaWatch/raw/playlist-deploy/dist/HeatSync.user.js
 // ==/UserScript==
 /* eslint-disable */
 

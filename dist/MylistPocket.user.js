@@ -29,9 +29,10 @@
 // @version     0.5.15-fix-mylist-api.17
 // @grant       none
 // @author      segabito macmoto
-// @license     public domain
+// @license     AGPL-3.0-or-later
+// 上流 segabito/ZenzaWatch 版は public domain を宣言。本 fork は AGPL-3.0-or-later に統一。
 // @require     https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.5/lodash.min.js
-// @downloadURL    https://github.com/onoderakeita/ZenzaWatch/raw/playlist-deploy/dist/MylistPocket.user.js
+// @downloadURL    https://github.com/Seduce0068/ZenzaWatch/raw/playlist-deploy/dist/MylistPocket.user.js
 // ==/UserScript==
 /* eslint-disable */
 
