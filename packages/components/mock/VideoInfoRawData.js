@@ -405,7 +405,7 @@ export const VideoInfoRawData = {
       'isPostLocked': false,
       'isHtrzm': false,
       'isTwitterConnection': false,
-      'nicosid': '1497670983.209623872'
+      'nicosid': 'PLACEHOLDER-2525'
     },
     'community': null,
     'mainCommunity': {
@@ -451,10 +451,10 @@ export const VideoInfoRawData = {
       'isDictionaryDisplayable': true,
       'isDefaultCommentInvisible': false,
       'accessFrom': null,
-      'csrfToken': '1472081-1561883185-REDACTED',
+      'csrfToken': 'PLACEHOLDER-2525',
       'translationVersionJsonUpdateTime': 1556178775,
-      'userkey': '1561798585.~1~REDACTED',
-      'watchAuthKey': '1:1561796785:1542690907:REDACTED',
+      'userkey': 'PLACEHOLDER-2525',
+      'watchAuthKey': 'PLACEHOLDER-2525',
       'watchTrackId': 'ILaKAZ7dqV_1561796785788',
       'watchPageServerTime': 1561796785909,
       'isAuthenticationRequired': false,
@@ -1053,9 +1053,9 @@ export const VideoInfoRawData = {
   'isEco': false,
   'isDmc': true,
   'thumbnail': 'https://tn.smilevideo.jp/smile?i=34200478.L',
-  'csrfToken': '1472081-1561883185-REDACTED',
-  'watchAuthKey': '1:1561796785:1542690907:REDACTED',
-  'playlistToken': 'REDACTED',
+  'csrfToken': 'PLACEHOLDER-2525',
+  'watchAuthKey': 'PLACEHOLDER-2525',
+  'playlistToken': 'PLACEHOLDER-2525',
   'series': null,
   'isNeedPayment': false,
   'resumeInfo': {
