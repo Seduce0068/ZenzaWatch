@@ -11,7 +11,7 @@
     "start": "cross-env NODE_ENV=development webpack-dev-server"
   },
   "author": "guest",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@babel/core": "^7.2.0",
     "@babel/preset-env": "^7.2.0",

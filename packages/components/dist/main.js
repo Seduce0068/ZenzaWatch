@@ -149,7 +149,6 @@ class DefaultTemplateProcessor {
     }
 }
 const defaultTemplateProcessor = new DefaultTemplateProcessor();
-//# sourceMappingURL=default-template-processor.js.map
 
 /***/ }),
 
@@ -204,7 +203,6 @@ const directive = (f) => ((...args) => {
     return d;
 });
 const isDirective = (o) => typeof o === 'function' && directives.has(o);
-//# sourceMappingURL=directive.js.map
 
 /***/ }),
 
@@ -261,7 +259,6 @@ const removeNodes = (container, startNode, endNode = null) => {
         node = n;
     }
 };
-//# sourceMappingURL=dom.js.map
 
 /***/ }),
 
@@ -280,7 +277,6 @@ __webpack_require__.r(__webpack_exports__);
  * should not be written to the DOM.
  */
 const noChange = {};
-//# sourceMappingURL=part.js.map
 
 /***/ }),
 
@@ -722,7 +718,6 @@ const getOptions = (o) => o &&
     (eventOptionsSupported ?
         { capture: o.capture, passive: o.passive, once: o.once } :
         o.capture);
-//# sourceMappingURL=parts.js.map
 
 /***/ }),
 
@@ -782,7 +777,6 @@ const render = (result, container, options) => {
     part.setValue(result);
     part.commit();
 };
-//# sourceMappingURL=render.js.map
 
 /***/ }),
 
@@ -845,7 +839,6 @@ function templateFactory(result) {
     return template;
 }
 const templateCaches = new Map();
-//# sourceMappingURL=template-factory.js.map
 
 /***/ }),
 
@@ -959,7 +952,6 @@ class TemplateInstance {
         return fragment;
     }
 }
-//# sourceMappingURL=template-instance.js.map
 
 /***/ }),
 
@@ -1056,7 +1048,6 @@ class SVGTemplateResult extends TemplateResult {
         return template;
     }
 }
-//# sourceMappingURL=template-result.js.map
 
 /***/ }),
 
@@ -1275,7 +1266,6 @@ const createMarker = () => document.createComment('');
  *    * (') then any non-(')
  */
 const lastAttributeNameRegex = /([ \x09\x0a\x0c\x0d])([^\0-\x1F\x7F-\x9F \x09\x0a\x0c\x0d"'>=/]+)([ \x09\x0a\x0c\x0d]*=[ \x09\x0a\x0c\x0d]*(?:[^ \x09\x0a\x0c\x0d"'`<>=]*|"[^"]*|'[^']*))$/;
-//# sourceMappingURL=template.js.map
 
 /***/ }),
 
@@ -1386,7 +1376,6 @@ const html = (strings, ...values) => new _lib_template_result_js__WEBPACK_IMPORT
  * render to and update a container.
  */
 const svg = (strings, ...values) => new _lib_template_result_js__WEBPACK_IMPORTED_MODULE_1__["SVGTemplateResult"](strings, values, 'svg', _lib_default_template_processor_js__WEBPACK_IMPORTED_MODULE_0__["defaultTemplateProcessor"]);
-//# sourceMappingURL=lit-html.js.map
 
 /***/ }),
 

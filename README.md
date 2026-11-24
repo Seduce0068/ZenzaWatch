@@ -8,16 +8,16 @@ Greasemonkeyスクリプトとして動作します。
 
 本 fork は `AGPL-3.0-or-later` で公開します（[LICENSE](LICENSE) を参照）。
 
-<!--
 上流 segabito/ZenzaWatch（https://github.com/segabito/ZenzaWatch）由来のコードには
 public domain とする宣言が付されています。本 fork では当該上流の条件を尊重しつつ、
 fork 後に加えた変更と配布物の表記を AGPL-3.0-or-later に統一しています。
--->
+`packages/components` も上流由来のパッケージですが、本 fork の配布物として
+`package.json` の license を AGPL-3.0-or-later に統一しています。
 
 
 ## インストール
 
-[dist](/dist) から `*.user.js` を開き raw ボタンを押すことでインストールできます
+[dist](dist/) から `*.user.js` を開き raw ボタンを押すことでインストールできます
 
 ## 配布
 
